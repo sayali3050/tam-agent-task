@@ -16,7 +16,7 @@ import json
 from .data import AS_OF_DATE
 from .llm import LLMClient
 from .retrieval import KnowledgeBase
-from .schema import validate
+from .schema import CATEGORIES, PRIORITIES, ROUTES, validate
 from .tools import TOOL_SPECS, TicketSession, ticket_hints
 
 MAX_STEPS = 10        # tool calls per ticket (excluding finish)
@@ -153,6 +153,32 @@ def check_decision(d: dict, s: TicketSession, ctx: Context) -> list[str]:
     return errs
 
 
+def _make_valid(d: dict) -> dict:
+    """Last safety net: whatever the model sent, the saved output always matches the schema."""
+    for k in ("escalate", "notify_tam", "needs_clarification"):
+        if not isinstance(d.get(k), bool):
+            d[k] = str(d.get(k)).strip().lower() == "true"
+    if d.get("category") not in CATEGORIES:
+        d["category"] = "needs_info"
+    if d.get("priority") not in PRIORITIES:
+        d["priority"] = "P3"
+    if d.get("route_to") not in ROUTES:
+        d["route_to"] = "L1_support"
+    for k in ("kb_references", "account_signals"):
+        if not isinstance(d.get(k), list):
+            d[k] = []
+    for k in ("customer_reply", "internal_note"):
+        if not isinstance(d.get(k), str):
+            d[k] = "" if d.get(k) is None else str(d.get(k))
+    try:
+        d["confidence"] = min(max(float(d.get("confidence")), 0.0), 1.0)
+    except (TypeError, ValueError):
+        d["confidence"] = 0.3
+    if d.get("duplicate_of") is not None and not isinstance(d.get("duplicate_of"), str):
+        d["duplicate_of"] = None
+    return d
+
+
 def _fallback(ticket: dict, s: TicketSession, reason: str) -> dict:
     """Safe answer when the model fails to finish: send to a human, flag low confidence."""
     return {"category": "needs_info", "priority": "P3", "route_to": "L1_support", "escalate": False,
@@ -238,6 +264,7 @@ def triage(ticket: dict, ctx: Context) -> dict:
     decision.setdefault("ticket_id", ticket["ticket_id"])  # needed when we used _fallback
     decision.setdefault("account_id", s.resolved_account or ticket.get("account_id") or None)
     decision["reasoning_trace"] = trace
+    decision = _make_valid(decision)
     ctx.last_stats = {"tool_calls": tool_steps, "fix_rounds": fix_rounds, "llm_calls": ctx.llm.calls - calls0,
                       "input_tokens": ctx.llm.input_tokens - in0, "output_tokens": ctx.llm.output_tokens - out0,
                       "tools_used": [t["action"] for t in trace]}

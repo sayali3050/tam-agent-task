@@ -114,11 +114,24 @@ class LLMClient:
                 wire.append({"role": "tool", "tool_call_id": m["tool_call_id"], "content": m["content"]})
             else:
                 wire.append({"role": "user", "content": m["content"]})
-        kwargs = dict(model=self.model, messages=wire, max_tokens=max_tokens, temperature=temperature)
+        # MAX_TOKENS / TOOL_CHOICE / REASONING_EFFORT let OpenAI-compatible providers (e.g. Gemini) work too.
+        kwargs = dict(model=self.model, messages=wire, temperature=temperature,
+                      max_tokens=int(os.getenv("MAX_TOKENS", max_tokens)))
+        if os.getenv("REASONING_EFFORT"):
+            kwargs["reasoning_effort"] = os.getenv("REASONING_EFFORT")
         if tools:
             kwargs["tools"] = [{"type": "function", "function": t} for t in tools]
-            kwargs["tool_choice"] = "required" if force_tool else "auto"
-        resp = self._client.chat.completions.create(**kwargs)
+            kwargs["tool_choice"] = os.getenv("TOOL_CHOICE", "required" if force_tool else "auto")
+        resp = None
+        for attempt in range(8):  # free tiers have per-minute limits: wait and retry on 429
+            try:
+                resp = self._client.chat.completions.create(**kwargs)
+                break
+            except Exception as e:
+                if "429" not in str(e) or "credit" in str(e).lower() or attempt == 7:
+                    raise
+                import time
+                time.sleep(min(10 * (attempt + 1), 60))
         if resp.usage:
             self.input_tokens += resp.usage.prompt_tokens
             self.output_tokens += resp.usage.completion_tokens
