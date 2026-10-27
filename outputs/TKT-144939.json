@@ -1,0 +1,100 @@
+{
+  "ticket_id": "TKT-144939",
+  "account_id": "ACC-3751",
+  "category": "bug",
+  "priority": "P1",
+  "route_to": "L2_engineering",
+  "escalate": true,
+  "notify_tam": true,
+  "duplicate_of": null,
+  "needs_clarification": false,
+  "kb_references": [
+    "KB-3985",
+    "KB-2914",
+    "KB-6401"
+  ],
+  "account_signals": [
+    "Premium tier",
+    "Active users down 7.3% in 3 months",
+    "2 open escalations",
+    "Within 90 days of renewal"
+  ],
+  "customer_reply": "We are experiencing issues with our eInvoice module. Invoices are failing OCR since about 6 AM. Please treat as urgent. We have roughly 1,200 invoices queued for month-end close.",
+  "internal_note": "Ticket TKT-144939 is a known issue with a hotfix in progress. It is also a security incident due to potential data exposure. Priority P1, route to L2 Engineering and notify TAM.",
+  "confidence": 0.95,
+  "reasoning_trace": [
+    {
+      "step": 1,
+      "action": "resolve_account",
+      "input": "{\"requester_domain\": \"brightfield-manufacturing.example\"}",
+      "observation": "{\"found\": true, \"account_id\": \"ACC-3751\", \"company_name\": \"Brightfield Manufacturing\", \"matched_on\": \"requester_domain (exact)\", \"note\": \"6 other accounts have similar names (e.g. Brightfield Energy, Brightfield Industries, Brightfield Tele..."
+    },
+    {
+      "step": 2,
+      "action": "get_account",
+      "input": "{\"account_id\": \"ACC-3751\"}",
+      "observation": "{\"account_id\": \"ACC-3751\", \"company_name\": \"Brightfield Manufacturing\", \"tier\": \"Premium\", \"arr_band\": \"1M+\", \"region\": \"EMEA\", \"renewal_date\": \"2026-12-04\", \"days_to_renewal\": 45, \"modules_licensed\": [\"Contracts\", \"Platform\", \"Supplier Man..."
+    },
+    {
+      "step": 3,
+      "action": "search_kb",
+      "input": "{\"query\": \"eInvoice E-4102\", \"module\": \"eInvoice\"}",
+      "observation": "{\"results\": [{\"id\": \"KB-3985\", \"title\": \"KNOWN ISSUE: Invoice OCR jobs fail with E-4102 after release 26.2.3\", \"module\": \"eInvoice\", \"type\": \"known_issue\", \"status\": \"active_incident\", \"last_updated\": \"2026-10-19\", \"error_codes\": [\"E-4102\"]..."
+    },
+    {
+      "step": 4,
+      "action": "get_usage_trend",
+      "input": "{\"account_id\": \"ACC-3751\"}",
+      "observation": "{\"account_id\": \"ACC-3751\", \"recent_months\": [{\"month\": \"2026-07\", \"active_users\": 799, \"login_rate_pct\": 56.7, \"tickets_opened\": 5}, {\"month\": \"2026-08\", \"active_users\": 747, \"login_rate_pct\": 58.3, \"tickets_opened\": 7}, {\"month\": \"2026-09\"..."
+    },
+    {
+      "step": 5,
+      "action": "search_tickets",
+      "input": "{\"error_code\": \"E-4102\", \"account_id\": \"ACC-3751\", \"module\": \"eInvoice\"}",
+      "observation": "{\"count\": 0, \"window_days\": 30, \"tickets\": []}"
+    },
+    {
+      "step": 6,
+      "action": "check_duplicates",
+      "input": "{\"account_id\": \"ACC-3751\"}",
+      "observation": "{\"error\": \"Bad arguments for check_duplicates: TicketSession.check_duplicates() got an unexpected keyword argument 'account_id'\"}"
+    },
+    {
+      "step": 7,
+      "action": "search_kb",
+      "input": "{\"module\": \"eInvoice\", \"query\": \"eInvoice E-4102\"}",
+      "observation": "{\"note\": \"You already made this exact call; use the earlier result.\"}"
+    },
+    {
+      "step": 8,
+      "action": "get_kb_article",
+      "input": "{\"kb_id\": \"KB-3985\"}",
+      "observation": "{\"id\": \"KB-3985\", \"title\": \"KNOWN ISSUE: Invoice OCR jobs fail with E-4102 after release 26.2.3\", \"type\": \"known_issue\", \"status\": \"active_incident\", \"last_updated\": \"2026-10-19\", \"related\": [\"KB-7914\", \"KB-2914\"], \"body\": \"\\n# KNOWN ISSUE:..."
+    },
+    {
+      "step": 9,
+      "action": "get_policy",
+      "input": "{\"topic\": \"priority_routing_escalation\"}",
+      "observation": "{\"id\": \"KB-2914\", \"title\": \"Support priority and escalation policy\", \"type\": \"policy\", \"status\": \"current\", \"last_updated\": \"2026-09-20\", \"related\": [\"KB-6401\", \"KB-5930\"], \"body\": \"\\n# Support priority and escalation policy\\n\\nThis policy ..."
+    },
+    {
+      "step": 10,
+      "action": "get_policy",
+      "input": "{\"topic\": \"data_exposure\"}",
+      "observation": "{\"id\": \"KB-6401\", \"title\": \"Handling suspected data exposure between suppliers or tenants\", \"type\": \"policy\", \"status\": \"current\", \"last_updated\": \"2026-09-05\", \"related\": [\"KB-2914\"], \"body\": \"\\n# Handling suspected data exposure between s..."
+    },
+    {
+      "step": 11,
+      "action": "finish_rejected",
+      "input": "{\"priority\": \"P1\", \"route_to\": \"L2_engineering\", \"kb_references\": [\"KB-3985\", \"KB-2914\", \"KB-6401\"], \"account_signals\": [\"Premium tier\", \"Active users down 7.3% in 3 months\", \"2 open escalations\", \"Within 90 days of renewal\"], \"internal_note\": \"Ticket TKT-144939 is a known issue with a hotfix in progress. It is also a security incident due to potential data exposure. Priority P1, route to L2 Engin...",
+      "observation": "missing field: escalate; Policy KB-2914: P1 tickets require escalate=true."
+    },
+    {
+      "step": 12,
+      "action": "finish",
+      "input": "{\"category\": \"bug\", \"priority\": \"P1\", \"route_to\": \"L2_engineering\", \"escalate\": true, \"notify_tam\": true, \"duplicate_of\": null}",
+      "observation": "Decision accepted",
+      "thought": "It seems there was an error in the previous call to `finish`. The `escalate` field is required for P1 priority tickets, and it should be set to `true` for P1 incidents. Let's correct this and finalize the triage.\n\nI will now call `finish` with the corrected information.\n"
+    }
+  ]
+}
