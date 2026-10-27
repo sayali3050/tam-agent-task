@@ -1,0 +1,5 @@
+pandas>=2.0
+# Install the SDK for the provider you use (Ollama needs nothing extra):
+anthropic>=0.40
+openai>=1.40
+# No other libraries: BM25 search is implemented in tam_agent/retrieval.py.
